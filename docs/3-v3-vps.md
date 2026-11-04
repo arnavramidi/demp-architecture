@@ -139,4 +139,4 @@ When matching finds a posting, its URL is checked against the boards Demp alread
 | Background fills per hour, both workers | ~90 |
 | Memory per lane | ~750MB |
 | Database size after files moved out | 900MB |
-| Monthly hosting cost | 70$ |
+| Monthly hosting cost | $70 |

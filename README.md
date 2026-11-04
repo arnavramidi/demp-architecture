@@ -14,21 +14,22 @@ This repo tells the story of the three architectures Demp has run on: what each 
 
 ```mermaid
 flowchart LR
-    V1["<b>v1 · Mar–Jun 2026</b><br/>Built to learn the heavy tools<br/>Kafka · EKS · pgvector · S3<br/>25 users"]
-    V2["<b>v2 · May–Nov 2026</b><br/>One database does everything<br/>Postgres as the message bus<br/>4 processes on one machine"]
+    V1["<b>v1 · Mar–Oct 2026</b><br/>Built to learn the heavy tools<br/>Kafka · EKS · pgvector · S3<br/>25 users"]
+    V2["<b>v2 · Jun–Nov 2026</b><br/>Stripped-down rebuild, for one person<br/>Postgres as the message bus<br/>4 processes on one machine"]
     V3["<b>v3 · Nov 2026 →</b><br/>Built for many people<br/>Managed Postgres + one VPS<br/>work queue · lanes · events"]
-    V1 -- "hosting a free product<br/>cost too much" --> V2
-    V2 -- "single-user assumptions<br/>baked into execution" --> V3
+    V1 -- "started alongside it in June:<br/>the smallest thing that could work" --> V2
+    V2 -- "single-user by design" --> V3
+    V1 -. "shut down mid-October,<br/>replaced by" .-> V3
 ```
 
 | | v1 | v2 | v3 |
 |---|---|---|---|
-| **The bet** | Use the industry-standard distributed stack and get hands-on with it | Strip everything back to one database and see what's actually needed | Keep the simplicity, remove the single-user assumptions |
+| **The bet** | Use the industry-standard distributed stack and get hands-on with it | Strip it to the least that could work, for one person, and rebuild each process properly from there | Keep the simplicity, remove the single-user assumptions |
 | **Coordination** | Kafka topics, Postgres, heartbeat leases | Polling one Postgres: request rows, leases, 1-second loops | One work-queue table, `LISTEN/NOTIFY`, lanes |
 | **Form filling** | Playwright workers on EKS, custom autoscaler | One Chrome on one machine, one global lock | Two workers × three lanes, fresh browser contexts |
 | **Files** | S3 with presigned URLs | Screenshots stored in Postgres rows | Object storage (R2), short-lived signed links |
 | **Where Submit runs** | The user's machine | Moving to the user's Chrome through an extension (Greenhouse first, from Oct 29) | The user's Chrome: the extension re-runs the fill with the planned answers, then sends |
-| **Why it ended** | Cost far out of proportion to 25 free users | Couldn't serve more than one person at a time | — |
+| **Why it ended** | Replaced by v3 in mid-October 2026 | Single-user by design; v3 is the version built for other people | — |
 
 Read in order:
 
@@ -42,7 +43,7 @@ Read in order:
 
 ## What I took away
 
-**Building to learn is fine if you're honest that that's what you're doing.** v1 used Kafka, Kubernetes, pgvector and a custom autoscaler because I wanted to work with them hands-on, not only read about them. It worked for 25 people. But for a free product with 25 users, I was paying distributed-systems hosting bills that the usage didn't justify. Shutting it down was the right call, and the lessons carried over even though the infrastructure didn't.
+**Building to learn is fine if you're honest that that's what you're doing.** v1 used Kafka, Kubernetes, pgvector and a custom autoscaler because I wanted to work with them hands-on, not only read about them. It worked, and it served 25 people until mid-October. But a free product with 25 users doesn't need a distributed system, so in June I started over from the smallest thing that could work, as a tool for myself, where I could redesign each process and test it on my own applications. The lessons carried over even though the infrastructure didn't.
 
 **A database can be your queue, up to a point.** In v2 I deliberately rejected Kafka and Redis. I'd already run Kafka, and for one team and one database it was a second system to keep alive, with no extra capability I needed. Postgres handled claims, leases and heartbeats well. What failed wasn't the idea but how I'd implemented it: everything polled once a second.
 
@@ -69,7 +70,7 @@ All numbers are as of the date shown and come from the project's own records.
 | Parallel vs. serial filling, 9 forms (cloud test) | 324 s vs. ~665 s | 2026-09-30 |
 | Database size taken up by screenshots before v3 | 228 MB of 291 MB | 2026-11-02 |
 | v3: time from Submit press to fill start | 5 seconds | 2026-11-02 |
-| v3: monthly hosting cost | 70$ | 2026-11-02 |
+| v3: monthly hosting cost | $70 | 2026-11-02 |
 
 ---
 
@@ -83,7 +84,7 @@ This repo describes the design fully: the flows, the trade-offs, the failures an
 - the rules for answering screening and legal questions
 - browser settings
 
-The ideas are all here; the accumulated detail that makes them work on dozens of real job boards is not, as it could be stolen. 
+The ideas are all here; the accumulated detail that makes them work on dozens of real job boards is not.
 
 ---
 

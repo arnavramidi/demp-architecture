@@ -1,10 +1,10 @@
-# v2: one database does everything (May – November 2026)
+# v2: one database does everything (June – November 2026)
 
 > **Status:** replaced by [v3](3-v3-vps.md). The planned move of v2 to Render was designed and partly built, then dropped before any worker went live.
 
 ## The idea
 
-After v1, I wanted to find out how little infrastructure Demp actually needed. v2 started on 2026-05-30 as a small program on one Mac: pull a GitHub feed of new-grad job postings, store them in SQLite, and send a Slack message. Over the next five months it grew back into the full product, including several of v1's best ideas: learning a board once, a separate learner, and submitting from the person's own machine. None of the heavy infrastructure came back with them.
+While v1 was still serving its users, I wanted to find out how little infrastructure Demp actually needed, and I wanted a version small enough to redesign one process at a time and test on my own applications. v2 started on 2026-05-30 as a small program on one Mac: pull a GitHub feed of new-grad job postings, store them in SQLite, and send a Slack message. It was built for one person and was never meant to take anyone else. Over the next five months it grew back into the full product, including several of v1's best ideas: learning a board once, a separate learner, and submitting from the person's own machine. None of the heavy infrastructure came back with them.
 
 ## How it grew
 
