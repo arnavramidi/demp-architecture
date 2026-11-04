@@ -19,8 +19,8 @@ flowchart TB
         LBL --> M["Match by set intersection<br/>against each profile"]
     end
     M -- "match sets" --> K[("Kafka")]
-    K --> MC["Match consumer<br/>batched SQLite transactions"]
-    MC --> DB[("SQLite<br/>matches · users · script index")]
+    K --> MC["Match consumer<br/>batched Postgres transactions"]
+    MC --> DB[("Postgres<br/>matches · users · script index")]
 
     subgraph EKS["Fill workers on EKS"]
         CTRL["Custom controller<br/>polls unfilled-job counts"] -.scales.-> W1["Playwright worker"]
@@ -55,7 +55,7 @@ Scripts are invalidated **when they fail, not on a timer**. ATS layouts change u
 
 The first learning design was lease-based. Moving learning to **its own queue** made it more than 30% faster.
 
-When a fill worker meets an unfamiliar platform, it parks the job. A dedicated learner builds that platform's script once, stores it in S3 with an index in SQLite, and republishes the parked jobs. One user's unfamiliar platform becomes every later user's cached one.
+When a fill worker meets an unfamiliar platform, it parks the job. A dedicated learner builds that platform's script once, stores it in S3 with an index in Postgres, and republishes the parked jobs. One user's unfamiliar platform becomes every later user's cached one.
 
 ### Filling unattended
 
@@ -67,7 +67,7 @@ Batches went from **40–45 minutes of the user watching** to **~15 minutes unat
 
 ### Crash-safe match delivery
 
-Matches were consumed from Kafka in batched SQLite transactions, with **offsets committed only after the write**. A crash mid-batch meant redelivery, never a dropped batch.
+Matches were consumed from Kafka in batched Postgres transactions, with **offsets committed only after the write**. A crash mid-batch meant redelivery, never a dropped batch.
 
 Redelivery itself was made safe at two points. A uniqueness constraint on matches meant a redelivered match couldn't create a duplicate. An idempotent submit API meant a repeated submit request couldn't send an application twice.
 
@@ -86,8 +86,8 @@ Users' personal data and ATS credentials were protected by:
 |---|---|
 | Learn once, replay deterministically | Kafka: one database turned out to be enough |
 | A separate learner with its own queue | Kubernetes and the custom autoscaler: a fixed pool of workers on one box covers this load |
-| Invalidate learned scripts on failure, not on a timer | SQLite as the system of record |
-| Submit runs next to the user | pgvector and the per-user rerank |
+| Invalidate learned scripts on failure, not on a timer | pgvector and the per-user rerank |
+| Submit runs next to the user | |
 | Fair scheduling across users | |
 | Encrypted credentials, redacted logs, short-lived file links | |
 
