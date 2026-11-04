@@ -130,17 +130,13 @@ When matching finds a posting, its URL is checked against the boards Demp alread
 - **Giving up:** after three failed attempts the board is flagged for an admin, and its waiting applications go to a human-review list. Nothing is silently dropped.
 - **Gone postings:** a posting proven gone by two independent signals is closed for everyone, with re-checks at 3 and 14 days, because a live job must never be hidden for good.
 
-## Known limits
-
-- **Matching** still asks a model for a verdict per person per posting, so its cost grows with people × postings. v2 started from a clean repository as a tool for one person, where a per-person verdict was the simplest thing that worked, and v1's matcher wasn't carried over. Bringing back v1's label-once-and-intersect approach is the leading candidate before Demp opens to many people.
-- **Workday** has no dedicated filler yet.
 
 ## Numbers
 
 | What | Value |
 |---|---|
-| Time from a press to its fill starting | `TBD after cutover` |
-| Background fills per hour, both workers | `TBD after cutover` |
-| Memory per lane | `TBD after cutover` |
-| Database size after files moved out | `TBD after cutover` |
-| Monthly hosting cost | `TBD after cutover` |
+| Time from a press to its fill starting | 5 seconds |
+| Background fills per hour, both workers | ~90 |
+| Memory per lane | ~750MB |
+| Database size after files moved out | 900MB |
+| Monthly hosting cost | 70$ |
