@@ -68,8 +68,8 @@ All numbers are as of the date shown and come from the project's own records.
 | AI cost of one application on that board afterwards (replay plus the screenshot check) | under $0.01, with no call to the expensive model | 2026-10-30 |
 | Parallel vs. serial filling, 9 forms (cloud test) | 324 s vs. ~665 s | 2026-09-30 |
 | Database size taken up by screenshots before v3 | 228 MB of 291 MB | 2026-11-02 |
-| v3: time from Submit press to fill start | `TBD after cutover` | — |
-| v3: monthly hosting cost | `TBD after cutover` | — |
+| v3: time from Submit press to fill start | 5 seconds | 2026-11-02 |
+| v3: monthly hosting cost | 70$ | 2026-11-02 |
 
 ---
 
