@@ -83,7 +83,7 @@ This repo describes the design fully: the flows, the trade-offs, the failures an
 - the rules for answering screening and legal questions
 - browser settings
 
-The ideas are all here; the accumulated detail that makes them work on dozens of real job boards is not.
+The ideas are all here; the accumulated detail that makes them work on dozens of real job boards is not, as it could be stolen. 
 
 ---
 
