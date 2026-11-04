@@ -51,7 +51,7 @@ Read in order:
 
 **Learn once, replay many times.** The biggest cost and reliability gains came from not asking an AI model what to do on every form. A dedicated learner works out a job board once. After that, every application on that board replays the learned steps deterministically. A cheap model is called only to pick which stored fact answers a question the rules can't, and that happens before anything is typed.
 
-**Keep the irreversible step next to the person.** Filling runs on servers. Submitting runs in the person's own browser. Partly that's trust, since they see exactly what's sent. Partly it's practical: in a 2026-09-30 test, submits from datacenter IP addresses were blocked by bot checks 4 out of 4 times.
+**Keep the irreversible step next to the person.** Filling runs on servers, in the background, and produces the card the person reviews. Submitting runs in the person's own browser: the extension replays the same fill from the saved plan there, then sends. Partly that's trust, since they see exactly what's sent. Partly it's practical: in a 2026-09-30 test, submits from datacenter IP addresses were blocked by bot checks 4 out of 4 times.
 
 ---
 

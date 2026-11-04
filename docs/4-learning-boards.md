@@ -122,6 +122,8 @@ Once a posting has a playbook, filling it for a real person is deterministic:
 - The filler stops at the final Submit control and screenshots the form. On a board that isn't yet **trusted**, the cheap check looks the screenshots over. A board becomes trusted after N clean fills in a row across Y different postings; a structural failure sends it back to the checked state.
 - The filled application becomes a card for the person to review. When they press Submit, the extension re-runs the fill script with the planned answers in their own Chrome and sends it, and Demp keeps the confirmation screenshot.
 
+The form is filled twice on purpose. The server fill produces the card: it runs in the background with the person's browser closed, and it's where the read-back, the resolver and the screenshot check happen. The extension's replay is the submit step: the same script and the same plan, run on the person's own connection, because submits from datacenter addresses are blocked ([v2: where Submit runs](2-v2-one-database.md#where-submit-runs)). What the person reviewed and what gets sent are the same fill, run twice.
+
 The screenshot check is told **whether** each box was answered, never **what** the answer was, so no personal value reaches that call:
 
 ```ts

@@ -69,7 +69,7 @@ flowchart LR
 
 - **Order.** Priority first, then round-robin across people so nobody's batch starves anyone else's, then arrival time.
 - **Per-board cap.** At most two lanes work on any one job board at once, counted *in the database*, so the cap holds across both workers.
-- **Claiming.** One short `READ COMMITTED` transaction: a shared advisory lock plus `FOR UPDATE SKIP LOCKED`. Claims are serialized across all lanes, which costs a few milliseconds each and buys an exact cap and exact fairness. `SERIALIZABLE` is never used here.
+- **Claiming.** One short `READ COMMITTED` transaction: an exclusive advisory lock on one key that every lane uses, plus `FOR UPDATE SKIP LOCKED` on the row. The lock is what serializes claims across all lanes and both workers, which costs a few milliseconds each and buys an exact cap and exact fairness. `SERIALIZABLE` is never used here.
 - **Leases.** A claimed task holds a lease that is renewed every 40 seconds, and a sweep every 60 seconds returns lapsed ones to the queue. A fill whose lease lapses twice goes to a human-review list instead of looping forever.
 - **Lanes.** A lane is one browser plus a filter on which kinds of work it takes; every fill in it gets a fresh browser context. Each worker has an **express lane** that only takes presses, so pressing Retry starts within seconds even while every other lane is in the middle of a long background fill.
 - **Stopping.** Putting an application away stops its fill at the next step, and the partial work is discarded. A submit that has announced "about to click" is never stopped or re-queued.

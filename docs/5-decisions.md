@@ -73,7 +73,7 @@ The major calls, oldest first. Each entry has what I chose, what I considered, a
 - **Why:** the database is the one thing I want someone else to back up. Everything else is stateless, and Chrome needs memory that's cheap on a VPS.
 - **Cost:** every page load crosses the internet to the database. The fallback, moving the web process next to it, is a configuration change.
 
-### v3 · One table as the queue, claimed with an advisory lock and SKIP LOCKED
+### v3 · One table as the queue, claimed with an exclusive advisory lock and SKIP LOCKED
 - **Chose:** a single work table for every kind of browser job, ordered by priority, then round-robin by person, then arrival, with a per-board cap counted in the database.
 - **Why:** one order, one way to claim, one way to recover. Exact fairness and an exact cap across workers.
 - **Cost:** claims are serialized, a few milliseconds each. That's fine at this scale and would be revisited long before it isn't.
