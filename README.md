@@ -6,7 +6,7 @@
 
 Demp was called Dr. Employment until October 2026.
 
-This repo tells the story of the three architectures Demp has run on: what each one looked like, why I built it that way, what broke, and what I changed. It contains documentation and selected code excerpts. It does not contain the product's source code, and you can't run anything from it (see [what's not here](#whats-deliberately-not-here)).
+This repo tells the story of the three architectures Demp has run on: what each one looked like, why I built it that way, what broke, and what I changed. It contains documentation and selected code excerpts. For privacy and product reasons, it does not contain the product's source code, and you can't run anything from it (see [what's not here](#whats-deliberately-not-here)).
 
 ---
 
