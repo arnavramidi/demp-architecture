@@ -27,7 +27,7 @@ flowchart LR
 | **Coordination** | Kafka topics, Postgres, heartbeat leases | Polling one Postgres: request rows, leases, 1-second loops | One work-queue table, `LISTEN/NOTIFY`, lanes |
 | **Form filling** | Playwright workers on EKS, custom autoscaler | One Chrome on one machine, one global lock | Two workers × three lanes, fresh browser contexts |
 | **Files** | S3 with presigned URLs | Screenshots stored in Postgres rows | Object storage (R2), short-lived signed links |
-| **Where Submit runs** | The user's machine | Moving to the user's Chrome through an extension (Greenhouse first, from Oct 29) | The user's Chrome, through an extension |
+| **Where Submit runs** | The user's machine | Moving to the user's Chrome through an extension (Greenhouse first, from Oct 29) | The user's Chrome: the extension re-runs the fill with the planned answers, then sends |
 | **Why it ended** | Cost far out of proportion to 25 free users | Couldn't serve more than one person at a time | — |
 
 Read in order:
@@ -48,7 +48,7 @@ Read in order:
 
 **Single-user assumptions hide in the execution model, not the schema.** v2's tables had a user column by September. The real assumptions were elsewhere: one global lock on form filling, one Chrome for everyone, and SERIALIZABLE transactions on every state change, which works when there's no contention to speak of. v3 is mostly about removing those.
 
-**Learn once, replay many times.** The biggest cost and reliability gains came from not asking an AI model what to do on every form. A dedicated learner works out a job board once. After that, every application on that board replays the learned steps deterministically, and the model is only called for answers the profile can't supply.
+**Learn once, replay many times.** The biggest cost and reliability gains came from not asking an AI model what to do on every form. A dedicated learner works out a job board once. After that, every application on that board replays the learned steps deterministically. A cheap model is called only to pick which stored fact answers a question the rules can't, and that happens before anything is typed.
 
 **Keep the irreversible step next to the person.** Filling runs on servers. Submitting runs in the person's own browser. Partly that's trust, since they see exactly what's sent. Partly it's practical: in a 2026-09-30 test, submits from datacenter IP addresses were blocked by bot checks 4 out of 4 times.
 
@@ -64,8 +64,8 @@ All numbers are as of the date shown and come from the project's own records.
 | v2: real applications submitted (one user) | 270 | 2026-11-02 |
 | v2: postings ingested | ~8,000 | 2026-10-28 |
 | Codebase (v2/v3 repo) | ~70K lines of non-test TypeScript (~28K of it the fill engine), ~9,000 tests, 2,600+ commits | 2026-10-30 |
-| AI cost to learn a new board (one rehearsal on a test database) | $0.18 | 2026-10-30 |
-| AI cost of one application on that board afterwards | under $0.01, with no call to the expensive model | 2026-10-30 |
+| AI cost to learn a new board (one Opus learning run, rehearsal on a test database) | $0.18 | 2026-10-30 |
+| AI cost of one application on that board afterwards (replay plus the screenshot check) | under $0.01, with no call to the expensive model | 2026-10-30 |
 | Parallel vs. serial filling, 9 forms (cloud test) | 324 s vs. ~665 s | 2026-09-30 |
 | Database size taken up by screenshots before v3 | 228 MB of 291 MB | 2026-11-02 |
 | v3: time from Submit press to fill start | `TBD after cutover` | — |
@@ -89,4 +89,4 @@ The ideas are all here; the accumulated detail that makes them work on dozens of
 
 ## Stack
 
-TypeScript on Node · Hono · React 19 + Vite · Postgres 17 · Patchright (a fork of Playwright) driving real Chrome · Anthropic Claude and Google Gemini · a Chrome extension for the submit step · Cloudflare R2 · v1 additionally used Kafka, pgvector, Kubernetes (EKS) and S3.
+TypeScript on Node · Hono · React 19 + Vite · Postgres 17 · Patchright (a fork of Playwright) driving real Chrome · Anthropic Claude · a Chrome extension for the submit step · Cloudflare R2 · v1 additionally used Kafka, pgvector, Kubernetes (EKS), S3 and Google Gemini.

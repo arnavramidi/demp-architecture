@@ -88,7 +88,7 @@ Users' personal data and ATS credentials were protected by:
 | A separate learner with its own queue | Kubernetes and the custom autoscaler: a fixed pool of workers on one box covers this load |
 | Invalidate learned scripts on failure, not on a timer | pgvector and the per-user rerank |
 | Submit runs next to the user | |
-| Fair scheduling across users | |
+| Fair scheduling across users (gone in v2, back in v3) | |
 | Encrypted credentials, redacted logs, short-lived file links | |
 
 The lesson I took from v1 wasn't that those tools are bad. It was that the size of the infrastructure should follow the load, not what I want to learn next. v2 started from the other end: the least infrastructure that could possibly work.
