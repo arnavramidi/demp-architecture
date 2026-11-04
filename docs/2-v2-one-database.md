@@ -27,7 +27,7 @@ After v1, I wanted to find out how little infrastructure Demp actually needed. v
 flowchart LR
     subgraph Outside
         FEEDS["Job feeds<br/>& company boards"]
-        AI["Claude / Gemini"]
+        AI["Claude"]
         ATS["Job application sites"]
     end
 

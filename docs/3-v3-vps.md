@@ -61,7 +61,7 @@ Every piece of browser work is a row in one table. That covers a person's **pres
 ```mermaid
 flowchart LR
     P["Press · priority 10"] --> Q[("work queue<br/>one table")]
-    LRN["Learn a board · 20"] --> Q
+    LRN["Learn a board · 20,<br/>moving up as applications wait"] --> Q
     F["Background fill · 40"] --> Q
     M["Maintenance · 50"] --> Q
     Q -->|"claim: priority →<br/>round-robin by person →<br/>arrival"| LANES["Lanes on both workers<br/>(learning in its own lane)"]
@@ -124,9 +124,9 @@ The sidebar ("Ready to review", "Needs your answer", and so on) used to be recom
 
 ## 7. Learning moves upstream
 
-When matching finds a posting, its URL is checked against the boards Demp already knows. A known board goes straight to the fill queue. An unknown one becomes a **learn this board** task in the same queue, at priority 20. The learner first checks whether the page is really a known board in disguise (a company careers page with a Greenhouse form embedded in it, say) before it learns anything from scratch. No one's fill ever stops to learn. See **[How Demp learns a job board](4-learning-boards.md)**.
+When matching finds a posting, its URL is checked against the boards Demp already handles, by hand-written driver or learned playbook. A known board goes straight to the fill queue. An unknown one becomes a **learn this board** task in the same queue, starting at priority 20 and moving up as more applications wait on it. The learner first checks whether the page is really a known board in disguise (a company careers page with a Greenhouse form embedded in it, say): it runs that ATS's driver or playbook once as the practice applicant, and if that's clean, the posting and its site are labeled with the ATS. Only then does it learn anything from scratch. No one's fill ever stops to learn. See **[How Demp learns a job board](4-learning-boards.md)**.
 
-- **Spending:** each learning attempt has a cap on model turns, and running out counts as a failed attempt, so three strikes bound what any one board can cost.
+- **Spending:** each learning attempt has a cap on model turns (40 per page, 120 per job), and running out counts as a failed attempt, so three strikes bound what any one board can cost.
 - **Giving up:** after three failed attempts the board is flagged for an admin, and its waiting applications go to a human-review list. Nothing is silently dropped.
 - **Gone postings:** a posting proven gone by two independent signals is closed for everyone, with re-checks at 3 and 14 days, because a live job must never be hidden for good.
 

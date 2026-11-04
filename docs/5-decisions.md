@@ -26,6 +26,16 @@ The major calls, oldest first. Each entry has what I chose, what I considered, a
 - **Why:** hosting cost was out of proportion to a free product with 25 users. The scale v1 was built for wasn't the scale it had.
 - **Cost:** existing users lost the service while v2 caught up.
 
+### v2 · Check for an embedded known form before learning (early Oct 2026)
+- **Chose:** when a posting's URL isn't on a known board, inspect the page for an embedded form from an ATS Demp already handles (by driver or by playbook), run one trial fill with it as the practice applicant, and label the posting and its site with that ATS only if the trial is clean.
+- **Instead of:** learning every unknown URL from scratch, or trusting the embed match without a trial.
+- **Why:** many careers pages are a known ATS underneath, so recognizing one costs a page load, a replay and a cheap review instead of a full learning run. The trial is there because embedded forms are often tweaked.
+- **Cost:** a failed trial is paid on top of the full learning that follows it. Only the first posting on a site pays the trial; later ones are labeled already.
+
+### v2 · Prompt caching on every model call (early Oct 2026)
+- **Chose:** mark the unchanging prefix of every Claude call (tool definitions, instructions) with a cache breakpoint.
+- **Why:** a learning run is many calls in a row with the same prefix. After the first, each call pays full price only for the new page snapshot.
+
 ### v2 · No Kafka, no Redis: the database is the message bus
 - **Chose:** one Postgres for jobs, work requests, leases and heartbeats.
 - **Instead of:** Kafka for work, Redis for cache and locks.
@@ -83,22 +93,6 @@ The major calls, oldest first. Each entry has what I chose, what I considered, a
 - **Chose:** keep while unfinished, delete review screenshots 30 days after it's done, keep the confirmation screenshot of a sent application for the life of the account.
 - **Instead of:** a flat N-day expiry, which would delete proof of applications people still care about.
 
-### Learning · Check for an embedded known form before learning
-- **Chose:** when a posting's URL isn't on a known board, inspect the page for an embedded form from an ATS that already has a playbook, run one trial fill with that playbook, and file the posting under it only if the trial is clean.
-- **Instead of:** learning every unknown URL from scratch, or trusting the embed match without a trial.
-- **Why:** many careers pages are a known ATS underneath, so recognizing one costs a page load, a replay and a cheap review instead of a full learning run. The trial is there because embedded forms are often tweaked.
-- **Cost:** a failed trial is paid on top of the full learning that follows it.
-
-### Learning · Cheapest first: no model, then a cheap reviewer, then the expensive learner
-- **Chose:** try each new board with the generic filler and no model; have Claude Haiku approve or reject the attempt; call Claude Opus to learn the board only on rejection.
-- **Instead of:** sending every unknown board straight to the expensive model.
-- **Why:** plenty of forms are ordinary enough that no model needs to work them out, and the cheap review costs a fraction of a learning run.
-- **Cost:** the cheap reviewer gates the cheapest path, so its misses matter. It never decides alone: deterministic read-back and page checks have to pass too.
-
-### Every model call · Prompt caching
-- **Chose:** put the parts of each prompt that don't change (instructions, tool definitions) first, so Claude's and Gemini's prompt caches cover them.
-- **Why:** a learning run is many calls in a row with the same prefix. After the first, each call pays full price only for the new page snapshot.
-
 ### v3 · Learning in the shared queue, with a spending ceiling per board
-- **Chose:** learn tasks at priority 20 in the same queue, one run per worker at a time, a cap on model turns per attempt, and three strikes before an admin is asked.
+- **Chose:** learn tasks in the same queue, starting at priority 20 and moving up as more applications wait on the board, one run per worker at a time, a cap on model turns per attempt (40 per page, 120 per job), and three strikes before an admin is asked.
 - **Why:** nobody's fill ever waits on learning, and no board can quietly eat the AI budget.
