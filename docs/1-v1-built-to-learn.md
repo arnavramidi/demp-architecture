@@ -1,12 +1,12 @@
 # v1: built to learn (March – June 2026)
 
-> **Status:** shut down June 30, 2026. It lived in a separate repository.
+> **Status:** ran from March to mid-October 2026, then replaced by v3. It lived in a separate repository.
 
 ## Why it looked like this
 
 I had a theoretical understanding of connection pooling, message brokers and container orchestration, and I wanted hands-on experience with them. So v1 was built on the stack a large company would reach for: Kafka between services, form-filling workers on Kubernetes (EKS) with a custom autoscaler, pgvector for matching, and S3 for files.
 
-It worked. It served **25 users**, sent **~4,500 applications** and produced **50 interviews**. But it was a free product, and the hosting bill for a distributed system serving 25 people made no sense. I shut it down on June 30. A month earlier I'd started v2 as a deliberately small rebuild.
+It worked. It served **25 users**, sent **~4,500 applications** and produced **50 interviews**, and it kept running until mid-October 2026. But it was a free product, and a distributed system was far more than 25 people needed. So in June I started v2 alongside it: a deliberately small rebuild for one person, me, to find out how little Demp actually needed and to redesign each process on my own applications. v1 was shut down in mid-October to make way for v3.
 
 ## What it did
 

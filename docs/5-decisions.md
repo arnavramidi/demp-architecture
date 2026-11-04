@@ -21,10 +21,11 @@ The major calls, oldest first. Each entry has what I chose, what I considered, a
 - **Instead of:** a lease-based design.
 - **Why:** over 30% faster, and one user's new platform becomes every later user's cached one.
 
-### v1 → v2 · Shut down the distributed version
-- **Chose:** turn off v1 (June 30, 2026) and rebuild from the smallest possible base.
-- **Why:** hosting cost was out of proportion to a free product with 25 users. The scale v1 was built for wasn't the scale it had.
-- **Cost:** existing users lost the service while v2 caught up.
+### v1 → v2 · Start over small, alongside v1 (June 2026)
+- **Chose:** keep v1 serving its users, and start a stripped-down single-user rebuild next to it.
+- **Instead of:** adding to v1, or rebuilding it in place.
+- **Why:** a free product with 25 users didn't need a distributed system, and a small version was easier to redesign one process at a time and test on my own applications.
+- **Cost:** two codebases to keep alive for four months.
 
 ### v2 · Check for an embedded known form before learning (early Oct 2026)
 - **Chose:** when a posting's URL isn't on a known board, inspect the page for an embedded form from an ATS Demp already handles (by driver or by playbook), run one trial fill with it as the practice applicant, and label the posting and its site with that ATS only if the trial is clean.
@@ -35,6 +36,10 @@ The major calls, oldest first. Each entry has what I chose, what I considered, a
 ### v2 · Prompt caching on every model call (early Oct 2026)
 - **Chose:** mark the unchanging prefix of every Claude call (tool definitions, instructions) with a cache breakpoint.
 - **Why:** a learning run is many calls in a row with the same prefix. After the first, each call pays full price only for the new page snapshot.
+
+### v1 → v3 · Shut v1 down (mid-October 2026)
+- **Chose:** turn v1 off and replace it with v3.
+- **Why:** the rebuild was ready to take its place, and the distributed stack was the wrong size for a free product.
 
 ### v2 · No Kafka, no Redis: the database is the message bus
 - **Chose:** one Postgres for jobs, work requests, leases and heartbeats.
