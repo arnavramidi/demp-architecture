@@ -124,7 +124,7 @@ The sidebar ("Ready to review", "Needs your answer", and so on) used to be recom
 
 ## 7. Learning moves upstream
 
-When matching finds a posting on a board Demp hasn't learned, it inserts one **learn this board** task into the same queue, at priority 20. No one's fill ever stops to learn. See **[How Demp learns a job board](4-learning-boards.md)**.
+When matching finds a posting, its URL is checked against the boards Demp already knows. A known board goes straight to the fill queue. An unknown one becomes a **learn this board** task in the same queue, at priority 20. The learner first checks whether the page is really a known board in disguise (a company careers page with a Greenhouse form embedded in it, say) before it learns anything from scratch. No one's fill ever stops to learn. See **[How Demp learns a job board](4-learning-boards.md)**.
 
 - **Spending:** each learning attempt has a cap on model turns, and running out counts as a failed attempt, so three strikes bound what any one board can cost.
 - **Giving up:** after three failed attempts the board is flagged for an admin, and its waiting applications go to a human-review list. Nothing is silently dropped.
@@ -132,7 +132,7 @@ When matching finds a posting on a board Demp hasn't learned, it inserts one **l
 
 ## Known limits
 
-- **Matching** still asks a model for a verdict per person per posting, so its cost grows with people × postings. Matching at scale is an open design question. v1's label-once-and-intersect approach is one candidate; a vector-retrieval design is another.
+- **Matching** still asks a model for a verdict per person per posting, so its cost grows with people × postings. v2 started from a clean repository as a tool for one person, where a per-person verdict was the simplest thing that worked, and v1's matcher wasn't carried over. Bringing back v1's label-once-and-intersect approach is the leading candidate before Demp opens to many people.
 - **Workday** has no dedicated filler yet.
 
 ## Numbers

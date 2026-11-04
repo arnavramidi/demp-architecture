@@ -2,7 +2,9 @@
 
 **Demp** finds job postings, matches them to a person, fills in each application in a real browser, and shows every filled application to that person for review. When they press Submit, Demp sends it. The person never does the mechanical part of applying, but nothing is sent without their approval.
 
-**Live site:** [demp.app](https://demp.app) · [How it works](https://demp.app/how-it-works)
+**Live site:** [demp.app](https://demp.app), with a demo video and a clickable toy version of Demp you can try (nothing is ever sent from it). · [How it works](https://demp.app/how-it-works)
+
+Demp was called Dr. Employment until October 2026.
 
 This repo tells the story of the three architectures Demp has run on: what each one looked like, why I built it that way, what broke, and what I changed. It contains documentation and selected code excerpts. It does not contain the product's source code, and you can't run anything from it (see [what's not here](#whats-deliberately-not-here)).
 
@@ -22,7 +24,7 @@ flowchart LR
 | | v1 | v2 | v3 |
 |---|---|---|---|
 | **The bet** | Use the industry-standard distributed stack and get hands-on with it | Strip everything back to one database and see what's actually needed | Keep the simplicity, remove the single-user assumptions |
-| **Coordination** | Kafka topics, SQLite, heartbeat leases | Polling one Postgres: request rows, leases, 1-second loops | One work-queue table, `LISTEN/NOTIFY`, lanes |
+| **Coordination** | Kafka topics, Postgres, heartbeat leases | Polling one Postgres: request rows, leases, 1-second loops | One work-queue table, `LISTEN/NOTIFY`, lanes |
 | **Form filling** | Playwright workers on EKS, custom autoscaler | One Chrome on one machine, one global lock | Two workers × three lanes, fresh browser contexts |
 | **Files** | S3 with presigned URLs | Screenshots stored in Postgres rows | Object storage (R2), short-lived signed links |
 | **Where Submit runs** | The user's machine | Moving to the user's Chrome through an extension (Greenhouse first, from Oct 29) | The user's Chrome, through an extension |
@@ -33,12 +35,12 @@ Read in order:
 1. **[v1: built to learn](docs/1-v1-built-to-learn.md).** The overbuilt version, and what it taught me.
 2. **[v2: one database does everything](docs/2-v2-one-database.md).** The rebuild, the Render plan I pulled, and why.
 3. **[v3: the VPS architecture](docs/3-v3-vps.md).** What runs today.
-4. **[How Demp learns a job board](docs/4-learning-boards.md).** The engine that fills forms it has never seen, with code.
+4. **[How Demp learns a job board](docs/4-learning-boards.md).** How a posting finds its playbook, how an unknown board gets learned, and how a fill runs, with code excerpts.
 5. **[Decision log](docs/5-decisions.md).** Every major call, what I considered, and what it cost.
 
 ---
 
-## What I'd say about this in an interview
+## What I took away
 
 **Building to learn is fine if you're honest that that's what you're doing.** v1 used Kafka, Kubernetes, pgvector and a custom autoscaler because I wanted to work with them hands-on, not only read about them. It worked for 25 people. But for a free product with 25 users, I was paying distributed-systems hosting bills that the usage didn't justify. Shutting it down was the right call, and the lessons carried over even though the infrastructure didn't.
 
@@ -79,7 +81,7 @@ This repo describes the design fully: the flows, the trade-offs, the failures an
 - how learned boards are stored, and the vocabulary the learner is allowed to write in
 - per-board fixes (date pickers, custom dropdowns, upload widgets, multi-page sign-in flows)
 - the rules for answering screening and legal questions
-- browser and anti-bot settings
+- browser settings
 
 The ideas are all here; the accumulated detail that makes them work on dozens of real job boards is not.
 
@@ -87,4 +89,4 @@ The ideas are all here; the accumulated detail that makes them work on dozens of
 
 ## Stack
 
-TypeScript on Node · Hono · React 19 + Vite · Postgres 17 · Patchright (a fork of Playwright) driving real Chrome · Anthropic Claude and Google Gemini · a Chrome extension for the submit step · Cloudflare R2 · v1 additionally used Kafka, SQLite, pgvector, Kubernetes (EKS) and S3.
+TypeScript on Node · Hono · React 19 + Vite · Postgres 17 · Patchright (a fork of Playwright) driving real Chrome · Anthropic Claude and Google Gemini · a Chrome extension for the submit step · Cloudflare R2 · v1 additionally used Kafka, pgvector, Kubernetes (EKS) and S3.

@@ -7,17 +7,36 @@ Demp handles them in two ways:
 - **Known boards** have hand-written drivers. Every driver implements the same interface: read the form, fill one field, recognise the final Submit control, and check whether the posting is still live.
 - **Every other board** goes through the **self-taught engine**, which implements that same interface. Instead of hand-written code, it uses a playbook the engine learned itself: how to get into the application, what each box needs, and how to move to the next page.
 
-This page covers the self-taught engine, which is the part that took the most iterations.
+This page covers the self-taught engine, which is the part that took the most iterations: how a posting finds its playbook, how an unknown board gets learned, and how a fill runs once it has one.
 
 ## The core idea: learn once, replay many times
 
 Asking an AI model to fill every form live is expensive and doesn't repeat. The same form can come out differently on two runs, so failures can't be reproduced. Demp splits the work instead:
 
-1. A **learner** works out a board **once**, using an AI model that operates the page through a small set of guarded tools.
+1. A **learner** works out a board **once**. It tries without a model first and escalates to an AI model, which operates the page through a small set of guarded tools, only when that fails.
 2. Only the steps that worked are saved as that board's playbook.
 3. Every later application on that board **replays the playbook deterministically**. The expensive model isn't called at all. A cheap model is used only to write answers the profile can't supply and to look over the finished form.
 
 In one rehearsal on a test database (2026-10-30), learning a new board cost **$0.18** of AI calls. Each application on it afterwards cost **under $0.01**, with no call to the expensive model.
+
+## From posting to playbook
+
+Every matched posting is routed before any browser work happens:
+
+```mermaid
+flowchart TB
+    M["Matched posting"] --> K{"URL on a known board?<br/>hand-written driver or learned playbook"}
+    K -- "yes" --> F["Fill queue"]
+    K -- "no" --> LQ["Learn queue, priority 20"]
+    LQ --> E{"Page embeds a form<br/>from a learned ATS?"}
+    E -- "yes" --> T["Trial fill with that ATS's playbook<br/>as the practice applicant"]
+    T --> C{"Clean?<br/>read-back + cheap review"}
+    C -- "yes" --> FILE["File the posting<br/>under that playbook"]
+    FILE --> F
+    C -- "no" --> FULL["Full learning"]
+    E -- "no" --> FULL
+    FULL --> F
+```
 
 ## A board's life
 
@@ -38,21 +57,40 @@ stateDiagram-v2
 
 ### 1. Queue
 
-A matched posting on a board nobody has learned yet puts one **learn this board** task in the work queue. Boards that block the most people's applications go first. A person's fill never stops to learn: it moves on, and the application waits until the board is learned.
+A matched posting whose URL isn't on any known board puts one **learn this board** task in the work queue. Boards that block the most people's applications go first. A person's fill never stops to learn: it moves on, and the application waits until the board is learned.
 
-### 2. Learn, as a practice applicant
+### 2. Check for a known board in disguise
+
+Many company careers pages are a known ATS underneath: the page lives on the company's own site, but the application form is a Greenhouse or Lever form embedded in it. Learning those from scratch would mean paying to learn a board Demp already knows.
+
+So before learning anything, the learner opens the page and inspects its code for an embedded application form from an ATS that already has a playbook. If it finds one:
+
+1. It fills the posting once with that ATS's playbook, as the practice applicant (below).
+2. The trial has to pass the same bar as a newly learned board ([step 4](#4-verify-before-trusting)), including the cheap reviewer, Claude Haiku.
+3. If it passes, the posting's URL is filed under that ATS's playbook, and every later fill of it uses the playbook directly.
+4. If it fails, the posting goes through full learning as a new board.
+
+The trial exists because embedded forms are often tweaked: extra company questions, restyled controls, a field the hosted version doesn't have. Recognizing the ATS tells Demp which playbook to try, not that it will work. A recognized embed costs one page load, one replay and one cheap review instead of a full learning run.
+
+### 3. Learn, as a practice applicant
 
 The learner never uses a real person's profile. It applies as a **practice applicant**, a made-up person whose profile is deliberately rich enough to exercise every kind of question, in its own isolated browser. It stops before Submit, every time.
 
-The model sees a text snapshot of the page in which every control has a short tag, and it acts only through a few tools. Rules in code decide what it may **not** do, whatever it decides:
+Learning escalates from cheapest to most expensive, and stops at the first step that produces a clean sample:
+
+1. **No model.** The generic filler tries the form on its own with the practice profile.
+2. **Cheap review.** Claude Haiku looks at the attempt (the practice profile, the résumé it was given, and screenshots of the filled form) and either approves it, in which case the steps become the playbook, or hands it off.
+3. **Expensive learner.** Claude Opus works the page out and writes the playbook.
+
+In step 3 the model sees a text snapshot of the page in which every control has a short tag, and it acts only through a few tools. Rules in code decide what it may **not** do, whatever it decides:
 
 - type a real answer itself (answers come from the profile, never from the model)
 - press the final send control
 - leave the application
 
-### 3. Verify before trusting
+### 4. Verify before trusting
 
-One clean sample is enough to learn a board, but "clean" is strict:
+One clean sample is enough to learn a board, whichever step produced it, but "clean" is strict:
 
 - every required box reads back the value it was given
 - every page advances
@@ -74,7 +112,7 @@ export type FillCheckProblem = { label: string; kind: 'empty' | 'wrong' | 'valid
 export type FillCheckReport = { ok: true } | { ok: false; problems: FillCheckProblem[] };
 ```
 
-### 4. Failures that don't count
+### 5. Failures that don't count
 
 A sample that tells us nothing about the board isn't counted against it. That covers a posting that turned out to be closed, and an AI outage. Only real failures count, and three of those park the board for an admin. On a crash or outage the claim is released, the attempt isn't counted, and the error goes up to the caller:
 
@@ -85,7 +123,17 @@ A sample that tells us nothing about the board isn't counted against it. That co
 }
 ```
 
-### 5. Replay, and deciding whose problem a failure is
+### 6. Filling: replaying a playbook
+
+Once a posting has a playbook, filling it for a real person is mostly deterministic:
+
+- The playbook's steps replay in order: get into the application, fill each box, move to the next page.
+- Every value comes from the person's profile and saved answers. A question the profile can't answer goes to the cheap model, which writes an answer from the profile. The expensive model is never called during a fill.
+- Every box is read back after it's filled.
+- The filler stops at the final Submit control and screenshots the form, and the cheap check looks it over (told only whether each box was answered, as above).
+- The filled application becomes a card for the person to review. When they press Submit, their own browser sends it through the extension, and Demp keeps the confirmation screenshot.
+
+### 7. When a replay fails: whose problem is it?
 
 When a replay can't fill a box, the important question is **whose problem it is**:
 
@@ -109,7 +157,7 @@ const PERSONS_FAILURES: ReadonlySet<string> = new Set(['no-option-matches', 'no-
 
 Getting this split right matters in both directions. Calling a person's problem structural wastes AI money relearning a board that works. Calling a board's problem the person's asks them to fix something they can't.
 
-### 6. Repair
+### 8. Repair
 
 The learner takes the repair job, re-runs one of the waiting applications' postings as the practice applicant, and fixes **only the named control**. Every repair ends one of three ways:
 
@@ -159,6 +207,8 @@ export async function releaseInHand(db: Sql, state: LearnerState, owner: string,
 
 **Spending limits.** Daily ceilings on AI calls and model turns pause the learner, and each attempt has its own cap on model turns.
 
+**Prompt caching.** Every call to Claude or Gemini puts the parts that don't change (instructions and tool definitions) first, so the provider caches them. A learning run makes many calls in a row, and after the first one each call pays full price only for what's new, such as the latest page snapshot.
+
 *(Excerpts are from the real code, lightly trimmed: internal references to specs and rulings were removed; the screenshot-check comment is condensed from the file header; the SQL is shown with standard `$n` placeholders, a full column list, and without an optional filter for jobs the caller is skipping.)*
 
 ## How it got here
@@ -181,6 +231,7 @@ The thread through all of them: **the model should do as little as possible, as 
 - the prompts
 - the format playbooks are stored in, and the vocabulary the learner is allowed to write
 - the page-reading code that turns a live page into the tagged snapshot
+- the signals used to recognize each ATS's embedded form
 - per-board fixes
 - the rules for screening and legal questions
 - browser settings
